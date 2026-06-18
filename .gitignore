@@ -1,22 +1,42 @@
 # Python
 __pycache__/
 *.py[cod]
+*.egg-info/
+.eggs/
+dist/
+build/
 .venv/
 venv/
-.ipynb_checkpoints/
 
 # Jupyter
+.ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Your real financial data stays private — only sample data is tracked.
+# IDE / editor (local preferences — not part of the project)
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Secrets and local config (copy from *.example.yaml)
+.env
+.env.*
+config/categories.yaml
+config/debts.yaml
+config/budget.yaml
+config/plan.yaml
+
+# Your financial data — never commit real exports
 data/raw/*
 !data/raw/.gitkeep
 data/processed/*
 !data/processed/.gitkeep
 
-# Generated report images
-reports/*.png
-reports/*.pdf
+# Generated outputs
+reports/*
+!reports/.gitkeep
 
 # OS
 .DS_Store
+Thumbs.db

@@ -1,41 +1,121 @@
-# Budgeting & Analysis
+# Personal Budget & Debt Analysis
 
-A small Python project for analyzing personal spending from bank CSV/Excel exports.
+Analyze bank CSV/Excel exports locally with Jupyter — no cloud, no account linking.
 
-## Setup
+**Features**
+
+- Load common bank export formats (single `Amount` column, debit/credit pairs, RBC-style `CAD$`/`USD$`)
+- Keyword-based spending categories (YAML-configurable)
+- Multi-account analysis (one file per account in `data/raw/`)
+- Debt payoff math: single-loan amortization and multi-debt avalanche (highest APR first)
+- **Integrated debt planning:** income − budget − emergency fund → debt payment, with scenario comparison
+
+## Quick start
 
 ```bash
+git clone <your-repo-url>
 cd budgeting
 python3 -m venv .venv
-source .venv/bin/activate
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 jupyter lab
 ```
 
-Then open `notebooks/01_budget_analysis.ipynb` and run all cells.
+Open `notebooks/01_budget_analysis.ipynb` and run all cells — it works immediately on included sample data.
 
-## Using your own data
+## Use your own data
 
-Drop your bank's CSV or Excel exports into `data/raw/`. They're **git-ignored**, so your
-financial data never gets committed. The loader auto-detects common column layouts
-(`Date`/`Description`/`Amount`, or separate debit/credit columns). With `data/raw/` empty,
-the notebook falls back to `data/sample_transactions.csv` so it runs out of the box.
+1. Export transactions from your bank as CSV or Excel.
+2. Drop files into `data/raw/` (one file per account, any filename).
+3. Re-run the notebook.
 
-## Categories
+Your exports are **git-ignored** — see [SECURITY.md](SECURITY.md) before pushing anywhere public.
 
-Spending is tagged by keyword rules in `src/categorize.py`. Edit `DEFAULT_RULES` to match
-your own merchants; anything unmatched shows up as `Uncategorized` in the notebook so you
-know what to add.
+### Customize categories
 
-## Layout
-
-```
-data/raw/          your bank exports (private, git-ignored)
-data/processed/    optional cleaned output (git-ignored)
-data/sample_transactions.csv   demo data
-notebooks/         analysis notebook
-src/               loader + categorization helpers
-reports/           exported charts (git-ignored)
+```bash
+cp config/categories.example.yaml config/categories.yaml
+# edit keywords for your merchants
 ```
 
-Convention: in the `amount` column, **negative = money out**, **positive = money in**.
+### Plan debt payoff
+
+```bash
+cp config/debts.example.yaml config/debts.yaml
+# enter balances and APRs
+jupyter lab notebooks/02_debt_payoff.ipynb
+```
+
+### Full debt plan (budget + scenarios)
+
+```bash
+cp config/plan.example.yaml config/plan.yaml
+# income, budget lines, debts, scenarios
+jupyter lab notebooks/03_debt_plan.ipynb
+```
+
+The plan notebook compares scenarios (balanced, lean lifestyle, phased sprint, safety-net-first) and charts debt + emergency fund over time.
+
+## Supported export formats
+
+The loader auto-detects column headers (case-insensitive):
+
+| Canonical | Recognized aliases |
+|-----------|-------------------|
+| Date | `Date`, `Transaction Date`, `Posted Date`, … |
+| Description | `Description`, `Description 1`, `Memo`, `Payee`, … |
+| Amount | `Amount`, `CAD$`, `USD$`, … |
+| Debit / Credit | `Debit`, `Withdrawal`, `Credit`, `Deposit`, … |
+
+**RBC-style exports:** `Description 1` + `Description 2` are merged; if `CAD$` is blank, `USD$` is used at face value (no FX conversion).
+
+Sample files:
+
+- `data/sample_transactions.csv` — generic 3-column format
+- `data/sample_rbc_export.csv` — RBC multi-column format (fake account numbers)
+
+## Project layout
+
+```
+config/
+  categories.example.yaml   committed template
+  debts.example.yaml        committed template
+  plan.example.yaml         committed template (budget + scenarios)
+  categories.yaml           your rules (git-ignored)
+  debts.yaml                your balances (git-ignored)
+  plan.yaml                 your full plan (git-ignored)
+data/
+  raw/                      your bank exports (git-ignored)
+  sample_*.csv              demo data (committed)
+notebooks/
+  01_budget_analysis.ipynb
+  02_debt_payoff.ipynb
+  03_debt_plan.ipynb        budget-integrated scenarios
+reports/                    generated charts (git-ignored)
+src/
+  loader.py                 CSV/Excel normalization
+  categorize.py             keyword categorization
+  payoff.py                 amortization & avalanche
+  planner.py                budget + scenario simulation
+```
+
+**Amount convention:** negative = money out, positive = money in.
+
+**Non-spending categories** (transfers, credit-card payments, investments) are excluded from spending totals so money moving between your own accounts isn't double-counted.
+
+## Development
+
+```bash
+source .venv/bin/activate
+python src/payoff.py          # self-check amortization math
+python src/planner.py         # self-check scenario planner
+python -c "from src import load_transactions, categorize; print(categorize(load_transactions('data/sample_rbc_export.csv')).head())"
+```
+
+## License
+
+MIT — see [LICENSE](LICENSE).
+
+## Security
+
+Read [SECURITY.md](SECURITY.md) before publishing this repo or sharing notebooks.
