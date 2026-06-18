@@ -1,0 +1,55 @@
+# Copy to config/plan.yaml and customize.
+#
+#   cp config/plan.example.yaml config/plan.yaml
+#
+# Used by notebooks/03_debt_plan.ipynb. All amounts in your local currency.
+# plan.yaml is git-ignored — your numbers stay local.
+
+income:
+  monthly_take_home: 4800
+  bonus_net: 0          # optional lump-sum (after tax), e.g. 10560
+  bonus_month: 2        # which month of the plan it arrives (1 = first month)
+
+# Default monthly budget lines (scenarios can override lifestyle / EF).
+budget:
+  essentials: 2710      # rent, insurance, phone, groceries, fuel, etc.
+  lifestyle: 720        # dining, alcohol, entertainment, shopping
+  emergency_fund: 1000  # monthly contribution until target is reached
+
+emergency_fund:
+  current: 0
+  target: 11000         # ~3 months of essentials
+
+# Debts are paid avalanche-style (highest APR first).
+debts:
+  - name: Credit Card
+    balance: 5000
+    apr: 19.99
+
+  - name: Line of Credit
+    balance: 15000
+    apr: 6.5
+
+# Where a bonus goes: debt | emergency_fund | split
+bonus_to: debt
+
+scenarios:
+  - name: Balanced
+    # Uses default budget lines above.
+
+  - name: Lean lifestyle
+    lifestyle: 400
+    emergency_fund: 1000
+
+  - name: Sprint then reassess
+    bonus_to: split
+    phases:
+      - months: 5
+        lifestyle: 250
+        emergency_fund: 1000
+      # After 5 months, falls back to default budget lines for the remaining debt.
+
+  - name: Safety net first
+    lifestyle: 500
+    emergency_fund: 1200
+    bonus_to: emergency_fund

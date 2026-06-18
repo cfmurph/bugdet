@@ -1,0 +1,179 @@
+# Copy to config/categories.yaml and customize for your merchants.
+# First matching keyword wins — put structural categories (transfers, income)
+# before merchant categories.
+#
+#   cp config/categories.example.yaml config/categories.yaml
+
+non_spending:
+  - Transfer
+  - Credit Card Payment
+  - Investments
+
+rules:
+  Credit Card Payment:
+    - payment - thank you
+    - paiement - merci
+
+  Transfer:
+    - online banking transfer
+    - online transfer
+    - e-transfer
+    - etransfer
+    - interac e-trf
+    - atm deposit
+
+  Loan & Interest:
+    - loan payment
+    - loan interest
+    - overdraft interest
+    - mortgage
+
+  Income:
+    - payroll
+    - salary
+    - direct deposit
+    - tax refund
+    - interest paid
+
+  Investments:
+    - investment
+    - sun life
+    - rrsp
+    - tfsa
+
+  Insurance:
+    - insurance
+    - manulife
+
+  Housing:
+    - rent
+    - mortgage payment
+    - property
+    - hoa
+    - condo fee
+
+  Utilities:
+    - enmax
+    - atco
+    - telus
+    - shaw
+    - rogers
+    - bell
+    - fido
+    - electric
+    - water
+    - internet
+    - utility
+
+  Groceries:
+    - grocery
+    - supermarket
+    - wal-mart
+    - walmart
+    - costco
+    - safeway
+    - superstore
+    - no frills
+    - instacart
+
+  Alcohol:
+    - liquor
+    - wine
+    - brewery
+    - beer
+
+  Dining:
+    - restaurant
+    - cafe
+    - coffee
+    - starbucks
+    - tim hortons
+    - mcdonald
+    - doordash
+    - uber eats
+    - ubereats
+    - skipthedishes
+    - grubhub
+    - pub
+    - bar
+    - bistro
+    - sq *
+    - tst-
+
+  Transport:
+    - uber
+    - lyft
+    - cab
+    - taxi
+    - transit
+    - parking
+    - toll
+
+  Fuel:
+    - petro canada
+    - petro-canada
+    - esso
+    - shell
+    - chevron
+    - gas station
+
+  Auto:
+    - automotive
+    - canadian tire
+    - jiffy lube
+    - auto
+
+  Software & Subscriptions:
+    - netflix
+    - spotify
+    - amazon web services
+    - aws
+    - google
+    - apple.com
+    - microsoft
+    - subscription
+    - prime
+
+  Shopping:
+    - amazon
+    - best buy
+    - target
+    - store
+    - shop
+
+  Health:
+    - pharmacy
+    - rexall
+    - shoppers drug
+    - dental
+    - clinic
+    - doctor
+    - gym
+    - fitness
+
+  Recreation:
+    - golf
+    - ski
+    - yoga
+    - climbing
+    - sport
+
+  Entertainment:
+    - theatre
+    - cinema
+    - cineplex
+    - concert
+    - ticket
+
+  Travel:
+    - hotel
+    - airbnb
+    - airline
+    - flight
+    - expedia
+
+  Fees:
+    - fee
+    - service charge
+    - atm withdrawal
+    - nsf

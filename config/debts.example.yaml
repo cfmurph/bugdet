@@ -1,0 +1,16 @@
+# Copy to config/debts.yaml and fill in your balances.
+#
+#   cp config/debts.example.yaml config/debts.yaml
+#
+# Used by notebooks/02_debt_payoff.ipynb. Amounts are in your local currency.
+
+monthly_budget: 500
+
+debts:
+  - name: Credit Card
+    balance: 5000
+    apr: 19.99
+
+  - name: Line of Credit
+    balance: 15000
+    apr: 6.5

@@ -18,11 +18,16 @@ import pandas as pd
 # Map of canonical column name -> list of header aliases we've seen in the wild.
 COLUMN_ALIASES = {
     "date": ["date", "transaction date", "posted date", "posting date", "trans date"],
-    "description": ["description", "name", "memo", "payee", "details", "transaction"],
-    "amount": ["amount", "amt"],
+    "description": ["description", "description 1", "name", "memo", "payee", "details", "transaction"],
+    "amount": ["amount", "amt", "cad$", "cad", "usd$", "usd"],
     "debit": ["debit", "withdrawal", "withdrawals", "money out", "outflow"],
     "credit": ["credit", "deposit", "deposits", "money in", "inflow"],
 }
+
+# RBC-style exports split the amount across CAD$/USD$ and the payee across
+# Description 1/Description 2. These get merged in load_transactions.
+SECONDARY_AMOUNT = ["usd$", "usd", "cad$", "cad"]
+SECONDARY_DESC = ["description 2"]
 
 
 def _find_column(columns: list[str], aliases: list[str]) -> str | None:
@@ -58,8 +63,20 @@ def load_transactions(path: str | Path, account: str | None = None) -> pd.DataFr
     out["date"] = pd.to_datetime(df[date_col], errors="coerce")
     out["description"] = df[desc_col].astype(str).str.strip()
 
+    # RBC splits the payee across Description 1/2 — append the second when present.
+    desc2_col = _find_column(cols, SECONDARY_DESC)
+    if desc2_col is not None:
+        desc2 = df[desc2_col].fillna("").astype(str).str.strip()
+        out["description"] = (out["description"] + " " + desc2).str.strip()
+
     if amount_col is not None:
         out["amount"] = pd.to_numeric(df[amount_col], errors="coerce")
+        # Some banks split foreign-currency amounts into a second column with the
+        # primary amount blank. Backfill at face value (no FX conversion).
+        second_col = _find_column(cols, [a for a in SECONDARY_AMOUNT if a != amount_col.lower()])
+        if second_col is not None:
+            second = pd.to_numeric(df[second_col], errors="coerce")
+            out["amount"] = out["amount"].fillna(second)
     elif debit_col is not None or credit_col is not None:
         debit = pd.to_numeric(df.get(debit_col, 0), errors="coerce").fillna(0)
         credit = pd.to_numeric(df.get(credit_col, 0), errors="coerce").fillna(0)
