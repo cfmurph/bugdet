@@ -9,6 +9,9 @@ Analyze bank CSV/Excel exports locally with Jupyter — no cloud, no account lin
 - Multi-account analysis (one file per account in `data/raw/`)
 - Debt payoff math: single-loan amortization and multi-debt avalanche (highest APR first)
 - **Integrated debt planning:** income − budget − emergency fund → debt payment, with scenario comparison
+- **Income phases:** model a raise or job change mid-plan (`income.phases` in plan.yaml)
+- **Recurring bill detection:** find subscriptions and monthly charges from transaction patterns
+- **Plan vs actual:** compare plan budget lines to trailing categorized spend
 
 ## Quick start
 
@@ -49,12 +52,14 @@ jupyter lab notebooks/02_debt_payoff.ipynb
 ### Full debt plan (budget + scenarios)
 
 ```bash
-cp config/plan.example.yaml config/plan.yaml
-# income, budget lines, debts, scenarios
+./scripts/init_local.sh
+# edit config/plan.yaml — income, budget lines, debts, scenarios
 jupyter lab notebooks/03_debt_plan.ipynb
 ```
 
 The plan notebook compares scenarios (balanced, lean lifestyle, phased sprint, safety-net-first) and charts debt + emergency fund over time.
+
+`01_budget_analysis.ipynb` also includes **recurring bills** and **plan vs actual** when `config/plan.yaml` exists.
 
 ## Supported export formats
 

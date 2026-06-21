@@ -1,20 +1,47 @@
 # Copy to config/plan.yaml and customize.
 #
-#   cp config/plan.example.yaml config/plan.yaml
+#   ./scripts/init_local.sh
+#   # or: cp config/plan.example.yaml config/plan.yaml
 #
-# Used by notebooks/03_debt_plan.ipynb. All amounts in your local currency.
+# Used by notebooks/03_debt_plan.ipynb and plan-vs-actual in 01_budget_analysis.ipynb.
 # plan.yaml is git-ignored — your numbers stay local.
 
 income:
-  monthly_take_home: 4800
-  bonus_net: 0          # optional lump-sum (after tax), e.g. 10560
-  bonus_month: 2        # which month of the plan it arrives (1 = first month)
+  monthly_take_home: 4800   # default when income.phases is omitted
+  bonus_net: 0              # optional lump-sum (after tax), e.g. 10560
+  bonus_month: 2            # which month of the plan it arrives (1 = first month)
+  # Optional: raise or job change mid-plan
+  # phases:
+  #   - months: 1            # month 1 at old pay
+  #     monthly_take_home: 4800
+  #   - monthly_take_home: 7336   # remaining months at new pay
 
 # Default monthly budget lines (scenarios can override lifestyle / EF).
 budget:
   essentials: 2710      # rent, insurance, phone, groceries, fuel, etc.
   lifestyle: 720        # dining, alcohol, entertainment, shopping
   emergency_fund: 1000  # monthly contribution until target is reached
+
+# Map transaction categories → plan buckets for plan-vs-actual (notebook 01).
+budget_mapping:
+  essentials:
+    - Groceries
+    - Utilities
+    - Insurance
+    - Housing
+    - Fuel
+    - Transport
+    - Auto
+    - Health
+    - Software & Subscriptions
+    - Fees
+  lifestyle:
+    - Dining
+    - Alcohol
+    - Entertainment
+    - Shopping
+    - Recreation
+    - Travel
 
 emergency_fund:
   current: 0

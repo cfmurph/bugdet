@@ -30,12 +30,65 @@ def surplus(take_home: float, essentials: float, lifestyle: float, emergency: fl
     return round(take_home - essentials - lifestyle - emergency, 2)
 
 
-def _debt_budget_for_phase(plan: dict, phase: dict) -> float:
-    income = float(plan["income"]["monthly_take_home"])
+def take_home_at(plan: dict, month: int) -> float:
+    """Take-home pay for plan month index (0 = first month).
+
+    Uses ``income.phases`` when present, otherwise ``income.monthly_take_home``.
+    The last phase without ``months`` applies for all remaining months.
+    """
+    income = plan.get("income", {})
+    phases = income.get("phases")
+    if not phases:
+        return float(income["monthly_take_home"])
+
+    idx = 0
+    for i, phase in enumerate(phases):
+        th = float(phase["monthly_take_home"])
+        if "months" not in phase:
+            return th
+        n = int(phase["months"])
+        if month < idx + n:
+            return th
+        idx += n
+    return float(phases[-1]["monthly_take_home"])
+
+
+def _budget_phase_for_month(plan: dict, scenario: dict, month: int) -> dict:
+    """Lifestyle/EF overrides for a given plan month."""
+    phases = scenario.get("phases")
+    if not phases:
+        return scenario
+    idx = 0
+    for phase in phases:
+        n = int(phase["months"])
+        if month < idx + n:
+            return phase
+        idx += n
+    return plan["budget"]
+
+
+def _debt_budget_for_phase(
+    plan: dict,
+    phase: dict,
+    take_home: float | None = None,
+) -> float:
+    income = take_home if take_home is not None else float(plan["income"]["monthly_take_home"])
     essentials = float(plan["budget"]["essentials"])
     lifestyle = float(phase.get("lifestyle", plan["budget"]["lifestyle"]))
     ef = float(phase.get("emergency_fund", plan["budget"]["emergency_fund"]))
     return surplus(income, essentials, lifestyle, ef)
+
+
+def build_monthly_budgets(plan: dict, scenario: dict, max_months: int = 360) -> list[float]:
+    """Debt payment budget for each month (respects income + lifestyle phases)."""
+    return [
+        _debt_budget_for_phase(
+            plan,
+            _budget_phase_for_month(plan, scenario, m),
+            take_home_at(plan, m),
+        )
+        for m in range(max_months)
+    ]
 
 
 def simulate_avalanche(
@@ -150,25 +203,18 @@ def run_scenario(plan: dict, scenario: dict) -> dict:
             lumps[bonus_month] = lumps.get(bonus_month, 0) + half
             ef_current += half
 
-    phases = scenario.get("phases")
-    if phases:
-        budgets: list[float] = []
-        for phase in phases:
-            budgets.extend([_debt_budget_for_phase(plan, phase)] * int(phase["months"]))
-        tail = _debt_budget_for_phase(plan, plan["budget"])
-        history = simulate_avalanche(debts, budgets, tail_budget=tail, lump_payments=lumps)
-    else:
-        budget = _debt_budget_for_phase(plan, scenario)
-        if budget <= _min_interest(debts) and not lumps:
-            return {
-                "name": scenario["name"],
-                "history": pd.DataFrame(),
-                "summary": {"months": None, "reason": f"debt budget ${budget:.0f}/mo below interest floor"},
-                "debt_free_month": None,
-                "ef_at_end": ef_current,
-                "monthly_debt_start": budget,
-            }
-        history = simulate_avalanche(debts, budget, lump_payments=lumps)
+    budgets = build_monthly_budgets(plan, scenario)
+    start_budget = budgets[0]
+    if start_budget <= _min_interest(debts) and not lumps:
+        return {
+            "name": scenario["name"],
+            "history": pd.DataFrame(),
+            "summary": {"months": None, "reason": f"debt budget ${start_budget:.0f}/mo below interest floor"},
+            "debt_free_month": None,
+            "ef_at_end": ef_current,
+            "monthly_debt_start": start_budget,
+        }
+    history = simulate_avalanche(debts, budgets, lump_payments=lumps)
 
     # Emergency fund grows each month until target.
     ef_rows = []
